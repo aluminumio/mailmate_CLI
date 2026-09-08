@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14         # Apple Silicon
+            target: darwin-arm64
+          - os: ubuntu-latest    # uses container
+            target: linux-x86_64
+            container: crystallang/crystal:1.13
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Crystal (macOS)
+        if: runner.os == 'macOS'
+        run: brew install crystal
+
+      - name: Install dependencies
+        run: shards install --production
+
+      - name: Build release binary
+        run: |
+          mkdir -p dist
+          shards build --release --no-debug
+          mv bin/rightdesk dist/rightdesk-${{ matrix.target }}
+
+      - name: Compute SHA256
+        run: |
+          cd dist
+          shasum -a 256 rightdesk-${{ matrix.target }} > rightdesk-${{ matrix.target }}.sha256
+          cat rightdesk-${{ matrix.target }}.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rightdesk-${{ matrix.target }}
+          path: dist/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ls -la dist/
+          gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1 \
+            || gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --generate-notes
+          gh release upload "${GITHUB_REF_NAME}" dist/* --clobber
+
+      - name: Bump homebrew tap
+        if: env.GH_TOKEN != ''
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
+        run: |
+          gh api repos/aluminumio/homebrew-tap/dispatches \
+            -f event_type=rightdesk-cli-released \
+            -F "client_payload[version]=${GITHUB_REF_NAME#v}"

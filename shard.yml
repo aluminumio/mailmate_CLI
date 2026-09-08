@@ -1,0 +1,20 @@
+name: rightdesk
+version: 0.1.0
+
+authors:
+  - Aluminum <engineering@aluminum.io>
+
+targets:
+  rightdesk:
+    main: src/rightdesk.cr
+
+crystal: ">= 1.10"
+
+dependencies:
+  athena-console:
+    github: athena-framework/console
+    version: ~> 0.4.3
+
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
