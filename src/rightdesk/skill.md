@@ -1,10 +1,13 @@
 # RightDesk CLI — Skill
 
-Drive the RightDesk API from the shell. The command is `rd`. All data commands accept `-j`/`--json` for machine-readable output — prefer this when piping or parsing.
+Drive the RightDesk API from the shell. The command is `rd`, grammar `rd <noun> <verb> [target] [flags]`
+(the colon form `rd deals:get 42` also works). All data commands accept `-j`/`--json` for
+machine-readable output — prefer this when piping or parsing.
 
 ## Authentication
 
-RightDesk uses static API tokens (no browser/OAuth flow). Mint a token in the web UI under **Organization Settings → API**, then:
+RightDesk uses static API tokens (no browser/OAuth flow). Mint a token in the web UI under
+**Organization Settings → API**, then:
 
 ```sh
 rd login            # paste the token (prompted, hidden); stored in ~/.netrc
@@ -12,36 +15,45 @@ rd whoami -j        # confirms the current user + organization
 rd logout           # clears the local token copy
 ```
 
-The token is **organization-scoped**: to act in another org, mint a token there and `login` again (this overwrites the local entry). `logout` only clears the local copy — the token stays valid server-side until revoked in the web UI.
+The token is **organization-scoped**: to act in another org, mint a token there and `login` again
+(this overwrites the local entry). `logout` only clears the local copy — the token stays valid
+server-side until revoked in the web UI.
 
-You can also pass the token non-interactively: `rd login <token>`, or set `RIGHTDESK_TOKEN` in the environment (it overrides `~/.netrc`).
+Non-interactive: `rd login <token>`, or set `RIGHTDESK_TOKEN` (overrides `~/.netrc`).
+
+## Output contract (important for agents)
+
+- **Data on stdout, diagnostics on stderr** — parse stdout only.
+- **`-j`/`--json`** emits the raw JSON payload; under `--json`, errors are structured
+  `{"error","code","hint"}` on stderr.
+- **Exit codes:** `0` ok · `1` general · `2` usage · `3` auth · `4` not found · `5` insufficient scope.
+  Branch on these; e.g. exit `3` means run `rd login` and retry.
 
 ## Configuration
 
-| Variable | Default | Purpose |
+| Flag / Variable | Default | Purpose |
 |---|---|---|
-| `RIGHTDESK_URL` | `https://app.rightdesk.com` | API host (override for self-hosted or dev) |
-| `RIGHTDESK_TOKEN` | (from `~/.netrc`) | API token override |
+| `--host` / `RIGHTDESK_URL` | `https://app.rightdesk.com` | API host (override for self-hosted or dev) |
+| `--token` / `RIGHTDESK_TOKEN` | (from `~/.netrc`) | API token override |
 
 ## Command reference
 
 | Command | Purpose | Key options |
 |---|---|---|
-| `login [token]` | Store an API token | — |
-| `logout` | Clear the local token | — |
-| `whoami` | Show current user/org | `-j` |
-| `deals` | List deals (newest first) | `--status open\|won\|lost`, `--page N`, `-j` |
-| `deals:show <id>` | Show one deal | `-j` |
-| `contacts` | List contacts | `--page N`, `-j` |
-| `contacts:search <query>` | Search contacts (name/email/phone) | `--company <id>`, `-j` |
-| `contacts:show <id>` | Show one contact | `-j` |
-| `pipelines` | List pipelines | `-j` |
-| `pipelines:show <id>` | Show a pipeline + stages | `-j` |
-| `skills` | Print this guide (for agents/LLMs) | — |
+| `rd login [token]` | Store an API token | — |
+| `rd logout` | Clear the local token | — |
+| `rd whoami` | Show current user/org | `-j` |
+| `rd deals list` | List deals (newest first) | `--status open\|won\|lost`, `--page N`, `--limit N`, `-j` |
+| `rd deals get ID` | Show one deal | `-j` |
+| `rd contacts list` | List contacts | `--page N`, `--limit N`, `-j` |
+| `rd contacts search QUERY` | Search contacts (name/email/phone) | `--company ID`, `-j` |
+| `rd contacts get ID` | Show one contact | `-j` |
+| `rd pipelines list` | List pipelines | `-j` |
+| `rd pipelines get ID` | Show a pipeline + stages | `-j` |
+| `rd skills` | Print this guide | — |
 
 ## Tips for agentic use
 
-- **Always pass `-j`** when you intend to parse output; the human-readable format is unstable.
-- **Capture IDs immediately** with `jq -r` (e.g. `rd deals --status open -j | jq -r '.deals[].id'`).
-- **Errors are a non-zero exit code + a single line** like `deals failed: HTTP 422 — {"error":...}`. Parse the JSON after the em-dash.
-- **Re-authenticate on 401**: a stale/revoked token surfaces as `... failed: not authenticated (HTTP 401)`. Run `rd login` and retry.
+- **Always pass `-j`** when parsing; the human format is unstable.
+- **Capture IDs immediately** with `jq -r` (e.g. `rd deals list --status open -j | jq -r '.deals[].id'`).
+- **Branch on exit codes**, not on message text. Exit `3` → `rd login` and retry.

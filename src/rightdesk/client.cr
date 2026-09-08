@@ -26,10 +26,17 @@ module RightDesk
 
     private def self.request(method : String, path : String,
                              query : String? = nil, body : String? = nil) : Response
-      uri = URI.parse("#{RightDesk::BASE_URL}#{path}")
+      # No local token → synthesize a 401 so callers take the normal auth-failure
+      # path (exit code 3, "run rd login") instead of raising.
+      token = RightDesk::Auth.token
+      unless token
+        return Response.new(401, %({"error":"Not authenticated","code":"missing_token"}))
+      end
+
+      uri = URI.parse("#{RightDesk::Config.base_url}#{path}")
       uri.query = query if query && !query.empty?
 
-      headers = HTTP::Headers{"Authorization" => "Bearer #{RightDesk::Auth.token!}"}
+      headers = HTTP::Headers{"Authorization" => "Bearer #{token}"}
       headers["Content-Type"] = "application/json" if body
 
       response = HTTP::Client.exec(method, uri, headers: headers, body: body)
