@@ -25,7 +25,7 @@ module RightDesk
   # nudge the user to re-login rather than dumping the raw body.
   def self.fail(output : ACON::Output::Interface, label : String, resp : Client::Response) : ACON::Command::Status
     if resp.status == 401
-      output.puts "#{label} failed: not authenticated (HTTP 401). Run `rightdesk login`."
+      output.puts "#{label} failed: not authenticated (HTTP 401). Run `rd login`."
     else
       output.puts "#{label} failed: HTTP #{resp.status} — #{resp.body}"
     end
@@ -34,7 +34,7 @@ module RightDesk
 
   module CLI
     def self.run(argv : Array(String)) : Nil
-      app = ACON::Application.new("rightdesk", CLI_VERSION)
+      app = ACON::Application.new("rd", CLI_VERSION)
       app.add LoginCommand.new
       app.add LogoutCommand.new
       app.add WhoamiCommand.new

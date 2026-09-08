@@ -31,17 +31,17 @@ jobs:
         run: |
           mkdir -p dist
           shards build --release --no-debug
-          mv bin/rightdesk dist/rightdesk-${{ matrix.target }}
+          mv bin/rd dist/rd-${{ matrix.target }}
 
       - name: Compute SHA256
         run: |
           cd dist
-          shasum -a 256 rightdesk-${{ matrix.target }} > rightdesk-${{ matrix.target }}.sha256
-          cat rightdesk-${{ matrix.target }}.sha256
+          shasum -a 256 rd-${{ matrix.target }} > rd-${{ matrix.target }}.sha256
+          cat rd-${{ matrix.target }}.sha256
 
       - uses: actions/upload-artifact@v4
         with:
-          name: rightdesk-${{ matrix.target }}
+          name: rd-${{ matrix.target }}
           path: dist/*
 
   release:

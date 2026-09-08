@@ -4,7 +4,7 @@ require "./config"
 module RightDesk
   # Static-token auth. RightDesk has no OAuth device flow (unlike the other org
   # CLIs), so a token is minted in the web UI (Organization Settings → API) and
-  # pasted via `rightdesk login`. It is persisted in ~/.netrc, keyed by the API
+  # pasted via `rd login`. It is persisted in ~/.netrc, keyed by the API
   # host, and sent as `Authorization: Bearer <token>` on every request.
   #
   # The token is org-scoped: to work in another organization, mint a token there
@@ -32,7 +32,7 @@ module RightDesk
     end
 
     def self.token! : String
-      token || raise "Not authenticated. Run `rightdesk login` first."
+      token || raise "Not authenticated. Run `rd login` first."
     end
 
     def self.store(token : String) : Nil

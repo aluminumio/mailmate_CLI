@@ -1,20 +1,20 @@
 # RightDesk CLI — Skill
 
-Drive the RightDesk API from the shell. The CLI is `rightdesk`. All data commands accept `-j`/`--json` for machine-readable output — prefer this when piping or parsing.
+Drive the RightDesk API from the shell. The command is `rd`. All data commands accept `-j`/`--json` for machine-readable output — prefer this when piping or parsing.
 
 ## Authentication
 
 RightDesk uses static API tokens (no browser/OAuth flow). Mint a token in the web UI under **Organization Settings → API**, then:
 
 ```sh
-rightdesk login            # paste the token (prompted, hidden); stored in ~/.netrc
-rightdesk whoami -j        # confirms the current user + organization
-rightdesk logout           # clears the local token copy
+rd login            # paste the token (prompted, hidden); stored in ~/.netrc
+rd whoami -j        # confirms the current user + organization
+rd logout           # clears the local token copy
 ```
 
 The token is **organization-scoped**: to act in another org, mint a token there and `login` again (this overwrites the local entry). `logout` only clears the local copy — the token stays valid server-side until revoked in the web UI.
 
-You can also pass the token non-interactively: `rightdesk login <token>`, or set `RIGHTDESK_TOKEN` in the environment (it overrides `~/.netrc`).
+You can also pass the token non-interactively: `rd login <token>`, or set `RIGHTDESK_TOKEN` in the environment (it overrides `~/.netrc`).
 
 ## Configuration
 
@@ -42,6 +42,6 @@ You can also pass the token non-interactively: `rightdesk login <token>`, or set
 ## Tips for agentic use
 
 - **Always pass `-j`** when you intend to parse output; the human-readable format is unstable.
-- **Capture IDs immediately** with `jq -r` (e.g. `rightdesk deals --status open -j | jq -r '.deals[].id'`).
+- **Capture IDs immediately** with `jq -r` (e.g. `rd deals --status open -j | jq -r '.deals[].id'`).
 - **Errors are a non-zero exit code + a single line** like `deals failed: HTTP 422 — {"error":...}`. Parse the JSON after the em-dash.
-- **Re-authenticate on 401**: a stale/revoked token surfaces as `... failed: not authenticated (HTTP 401)`. Run `rightdesk login` and retry.
+- **Re-authenticate on 401**: a stale/revoked token surfaces as `... failed: not authenticated (HTTP 401)`. Run `rd login` and retry.

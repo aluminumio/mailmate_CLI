@@ -5,7 +5,7 @@ authors:
   - Aluminum <engineering@aluminum.io>
 
 targets:
-  rightdesk:
+  rd:
     main: src/rightdesk.cr
 
 crystal: ">= 1.10"
