@@ -48,6 +48,10 @@ Non-interactive: `rd login <token>`, or set `RIGHTDESK_TOKEN` (overrides `~/.net
 | `rd contacts list` | List contacts | `--page N`, `--limit N`, `-j` |
 | `rd contacts search QUERY` | Search contacts (name/email/phone) | `--company ID`, `-j` |
 | `rd contacts get ID` | Show one contact | `-j` |
+| `rd companies list` | List companies | `--search Q`, `--industry I`, `--page N`, `--limit N`, `-j` |
+| `rd companies get ID` | Show one company | `-j` |
+| `rd companies create` | Create a company | `--name` (required), `--domain`, `--url`, `--industry`, `--phone`, `--city`, `--country`, `--postal-code`, `--employees`, `--type`, `--description`, `--owner`, `--external-id`, `-j` |
+| `rd companies update ID` | Update a company | same flags as create, `-j` |
 | `rd pipelines list` | List pipelines | `-j` |
 | `rd pipelines get ID` | Show a pipeline + stages | `-j` |
 | `rd skills` | Print this guide | — |

@@ -24,6 +24,10 @@ module RightDesk
       request("POST", path, body: body)
     end
 
+    def self.patch(path : String, body : String? = nil) : Response
+      request("PATCH", path, body: body)
+    end
+
     private def self.request(method : String, path : String,
                              query : String? = nil, body : String? = nil) : Response
       # No local token → synthesize a 401 so callers take the normal auth-failure

@@ -23,6 +23,11 @@ Nouns are plural, verb second, target positional, flags named — e.g. `rd deals
     rd contacts search QUERY [--company ID] [-j]
     rd contacts get ID [-j]
     rd contacts list [--page N] [--limit N] [-j]
+    rd companies list [--search Q] [--industry I] [--page N] [--limit N] [-j]
+    rd companies get ID [-j]
+    rd companies create --name NAME [--domain --url --industry --phone --city --country \
+                        --postal-code --employees --type --description --owner --external-id] [-j]
+    rd companies update ID [same flags] [-j]
     rd pipelines list [-j]
     rd pipelines get ID [-j]
     rd skills                              # print agent/LLM usage guide
