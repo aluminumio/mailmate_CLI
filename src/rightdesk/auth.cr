@@ -13,8 +13,15 @@ module RightDesk
   module Auth
     LOGIN = "api"
 
+    @@token_override : String? = nil
+
+    # Set by the `--token` global flag. Rarely used — prefer RIGHTDESK_TOKEN.
+    def self.token_override=(value : String?)
+      @@token_override = value
+    end
+
     def self.host : String
-      URI.parse(RightDesk::BASE_URL).host || "app.rightdesk.com"
+      URI.parse(RightDesk::Config.base_url).host || "app.rightdesk.com"
     end
 
     def self.netrc_path : String
@@ -23,8 +30,11 @@ module RightDesk
       File.join(home, ".netrc")
     end
 
-    # Resolve the token: RIGHTDESK_TOKEN env override first, then ~/.netrc.
+    # Resolve the token: --token override ▸ RIGHTDESK_TOKEN env ▸ ~/.netrc.
     def self.token : String?
+      if (o = @@token_override) && !o.empty?
+        return o
+      end
       if env = ENV["RIGHTDESK_TOKEN"]?
         return env unless env.empty?
       end

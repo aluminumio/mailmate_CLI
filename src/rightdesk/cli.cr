@@ -8,6 +8,27 @@ require "./auth"
 require "./client"
 
 module RightDesk
+  # Process exit code, set by command failures and read by `CLI.run`.
+  # 0 ok · 1 general · 2 usage · 3 auth(401) · 4 not-found(404) · 5 insufficient-scope(403).
+  @@exit_code : Int32? = nil
+
+  def self.exit_code=(code : Int32)
+    @@exit_code = code
+  end
+
+  def self.exit_code? : Int32?
+    @@exit_code
+  end
+
+  def self.status_for(http : Int32) : Int32
+    case http
+    when 401 then 3
+    when 403 then 5
+    when 404 then 4
+    else          1
+    end
+  end
+
   # Mixin for data-returning commands. Adds `--json/-j` and exposes `json?(input)`.
   module JSONOption
     macro included
@@ -21,32 +42,125 @@ module RightDesk
     end
   end
 
-  # Uniform failure output. A 401 means the token is missing/invalid/revoked —
-  # nudge the user to re-login rather than dumping the raw body.
-  def self.fail(output : ACON::Output::Interface, label : String, resp : Client::Response) : ACON::Command::Status
-    if resp.status == 401
-      output.puts "#{label} failed: not authenticated (HTTP 401). Run `rd login`."
+  # Uniform failure output → STDERR (diagnostics never touch stdout). Records the
+  # mapped exit code. Under --json, emits a structured `{error,code,hint?}` object.
+  def self.fail(label : String, resp : Client::Response, json : Bool = false) : ACON::Command::Status
+    RightDesk.exit_code = status_for(resp.status)
+    if json
+      obj = Hash(String, String).new
+      obj["error"] = error_message(resp)
+      obj["code"] = error_code(resp)
+      obj["hint"] = "Run `rd login`." if resp.status == 401
+      STDERR.puts obj.to_json
+    elsif resp.status == 401
+      STDERR.puts "#{label} failed: not authenticated (HTTP 401). Run `rd login`."
     else
-      output.puts "#{label} failed: HTTP #{resp.status} — #{resp.body}"
+      STDERR.puts "#{label} failed: HTTP #{resp.status} — #{resp.body}"
     end
     ACON::Command::Status::FAILURE
   end
 
+  def self.error_code(resp : Client::Response) : String
+    if (parsed = JSON.parse(resp.body) rescue nil) && (c = parsed["code"]?.try(&.as_s?))
+      return c
+    end
+    case resp.status
+    when 401 then "unauthorized"
+    when 403 then "forbidden"
+    when 404 then "not_found"
+    when 422 then "validation_error"
+    else          "error"
+    end
+  end
+
+  def self.error_message(resp : Client::Response) : String
+    if (parsed = JSON.parse(resp.body) rescue nil) && (m = parsed["error"]?.try(&.as_s?))
+      return m
+    end
+    "HTTP #{resp.status}"
+  end
+
   module CLI
+    # Registered command names, used by the ARGV rewriter to validate joins.
+    COMMAND_NAMES = %w[
+      login logout whoami skills
+      deals:list deals:get
+      contacts:list contacts:get contacts:search
+      pipelines:list pipelines:get
+    ]
+
     def self.run(argv : Array(String)) : Nil
       app = ACON::Application.new("rd", CLI_VERSION)
+      app.auto_exit = false
       app.add LoginCommand.new
       app.add LogoutCommand.new
       app.add WhoamiCommand.new
       app.add SkillsCommand.new
-      app.add DealsCommand.new
-      app.add DealsShowCommand.new
-      app.add ContactsCommand.new
+      app.add DealsListCommand.new
+      app.add DealsGetCommand.new
+      app.add ContactsListCommand.new
       app.add ContactsSearchCommand.new
-      app.add ContactsShowCommand.new
-      app.add PipelinesCommand.new
-      app.add PipelinesShowCommand.new
-      app.run(ACON::Input::ARGV.new(argv))
+      app.add ContactsGetCommand.new
+      app.add PipelinesListCommand.new
+      app.add PipelinesGetCommand.new
+
+      status = app.run(ACON::Input::ARGV.new(preprocess(argv)))
+      exit(RightDesk.exit_code? || status.value)
+    end
+
+    # Pull out global flags (`--host`, `--token`), then rewrite `<noun> <verb>` to
+    # the colon form athena understands.
+    def self.preprocess(argv : Array(String)) : Array(String)
+      join_noun_verb(extract_global_flags(argv))
+    end
+
+    # Extract and apply `--host`/`--token` (either `--flag value` or `--flag=value`),
+    # returning the remaining tokens. These are framework-global, so we handle them
+    # here rather than declaring them on every command.
+    def self.extract_global_flags(argv : Array(String)) : Array(String)
+      result = [] of String
+      i = 0
+      while i < argv.size
+        arg = argv[i]
+        if arg == "--host" || arg == "--token"
+          i += 1
+          apply_global(arg, argv[i]?)
+        elsif arg.starts_with?("--host=")
+          apply_global("--host", arg.split("=", 2)[1])
+        elsif arg.starts_with?("--token=")
+          apply_global("--token", arg.split("=", 2)[1])
+        else
+          result << arg
+        end
+        i += 1
+      end
+      result
+    end
+
+    private def self.apply_global(key : String, value : String?)
+      return unless value
+      case key
+      when "--host"  then RightDesk::Config.host_override = value
+      when "--token" then RightDesk::Auth.token_override = value
+      end
+    end
+
+    # Join the leading non-flag tokens with `:` when they form a registered command.
+    # `deals get 5` → `deals:get 5`; bare/unknown/colon forms pass through unchanged.
+    def self.join_noun_verb(argv : Array(String)) : Array(String)
+      lead = [] of String
+      argv.each do |t|
+        break if t.starts_with?("-")
+        lead << t
+      end
+      return argv if lead.size < 2
+
+      max = Math.min(3, lead.size)
+      max.downto(2) do |k|
+        candidate = lead[0, k].join(":")
+        return [candidate] + argv[k..] if COMMAND_NAMES.includes?(candidate)
+      end
+      argv
     end
   end
 
@@ -69,12 +183,13 @@ module RightDesk
     protected def execute(input : ACON::Input::Interface, output : ACON::Output::Interface) : ACON::Command::Status
       token = input.argument("token").to_s.presence
       unless token
-        output.print "Paste your RightDesk API token (Organization Settings → API): "
+        STDERR.print "Paste your RightDesk API token (Organization Settings → API): "
         token = read_secret
       end
 
       if token.nil? || token.empty?
-        output.puts "login failed: no token provided"
+        STDERR.puts "login failed: no token provided"
+        RightDesk.exit_code = 2
         return ACON::Command::Status::FAILURE
       end
 
@@ -82,24 +197,26 @@ module RightDesk
 
       resp = RightDesk::Client.get("/api/v1/me")
       unless resp.success?
-        output.puts "Stored token, but verification failed: HTTP #{resp.status}. Check the token and RIGHTDESK_URL (#{RightDesk::BASE_URL})."
+        RightDesk.exit_code = RightDesk.status_for(resp.status)
+        STDERR.puts "Stored token, but verification failed: HTTP #{resp.status}. Check the token and host (#{RightDesk::Config.base_url})."
         return ACON::Command::Status::FAILURE
       end
 
       me = JSON.parse(resp.body)
       email = me.dig?("user", "email").try(&.as_s?)
       org = me.dig?("organization", "name").try(&.as_s?)
-      output.puts "Logged in as #{email} · #{org} (#{RightDesk::Auth.host})"
+      STDERR.puts "Logged in as #{email} · #{org} (#{RightDesk::Auth.host})"
       ACON::Command::Status::SUCCESS
     rescue ex
-      output.puts "login failed: #{ex.message}"
+      STDERR.puts "login failed: #{ex.message}"
+      RightDesk.exit_code = 1
       ACON::Command::Status::FAILURE
     end
 
     private def read_secret : String?
       if STDIN.tty?
         value = STDIN.noecho { STDIN.gets }
-        print "\n"
+        STDERR.print "\n"
         value.try(&.chomp)
       else
         STDIN.gets.try(&.chomp)
@@ -111,10 +228,11 @@ module RightDesk
   class LogoutCommand < ACON::Command
     protected def execute(input : ACON::Input::Interface, output : ACON::Output::Interface) : ACON::Command::Status
       RightDesk::Auth.clear
-      output.puts "Logged out (local token cleared). The token remains valid until revoked in the web UI."
+      STDERR.puts "Logged out (local token cleared). The token remains valid until revoked in the web UI."
       ACON::Command::Status::SUCCESS
     rescue ex
-      output.puts "logout failed: #{ex.message}"
+      STDERR.puts "logout failed: #{ex.message}"
+      RightDesk.exit_code = 1
       ACON::Command::Status::FAILURE
     end
   end
@@ -129,7 +247,7 @@ module RightDesk
 
     protected def execute(input : ACON::Input::Interface, output : ACON::Output::Interface) : ACON::Command::Status
       resp = RightDesk::Client.get("/api/v1/me")
-      return RightDesk.fail(output, "whoami", resp) unless resp.success?
+      return RightDesk.fail("whoami", resp, json?(input)) unless resp.success?
 
       if json?(input)
         output.puts resp.body
@@ -144,20 +262,22 @@ module RightDesk
       output.puts "organization: #{org}#{role ? " (#{role})" : ""}"
       ACON::Command::Status::SUCCESS
     rescue ex
-      output.puts "whoami failed: #{ex.message}"
+      STDERR.puts "whoami failed: #{ex.message}"
+      RightDesk.exit_code = 1
       ACON::Command::Status::FAILURE
     end
   end
 
-  @[ACONA::AsCommand("deals:list|deals", description: "List deals (newest first)")]
-  class DealsCommand < ACON::Command
+  @[ACONA::AsCommand("deals:list", description: "List deals (newest first)")]
+  class DealsListCommand < ACON::Command
     include JSONOption
 
     protected def configure : Nil
-      DealsCommand.add_json_option(self)
+      DealsListCommand.add_json_option(self)
       self
         .option("status", nil, ACON::Input::Option::Value[:required], "Filter by status: open, won, lost")
         .option("page", nil, ACON::Input::Option::Value[:required], "Page number (default 1)")
+        .option("limit", nil, ACON::Input::Option::Value[:required], "Results per page (max 100)")
     end
 
     protected def execute(input : ACON::Input::Interface, output : ACON::Output::Interface) : ACON::Command::Status
@@ -168,10 +288,13 @@ module RightDesk
         if p = input.option("page").to_s.presence
           form.add("page", p)
         end
+        if l = input.option("limit").to_s.presence
+          form.add("per_page", l)
+        end
       end
 
       resp = RightDesk::Client.get("/api/v1/deals", params)
-      return RightDesk.fail(output, "deals", resp) unless resp.success?
+      return RightDesk.fail("deals:list", resp, json?(input)) unless resp.success?
 
       if json?(input)
         output.puts resp.body
@@ -217,24 +340,25 @@ module RightDesk
       output.puts ""
       ACON::Command::Status::SUCCESS
     rescue ex
-      output.puts "deals failed: #{ex.message}"
+      STDERR.puts "deals:list failed: #{ex.message}"
+      RightDesk.exit_code = 1
       ACON::Command::Status::FAILURE
     end
   end
 
-  @[ACONA::AsCommand("deals:show", description: "Show a single deal by ID")]
-  class DealsShowCommand < ACON::Command
+  @[ACONA::AsCommand("deals:get", description: "Show a single deal by ID")]
+  class DealsGetCommand < ACON::Command
     include JSONOption
 
     protected def configure : Nil
-      DealsShowCommand.add_json_option(self)
+      DealsGetCommand.add_json_option(self)
       self.argument("id", :required, "deal ID")
     end
 
     protected def execute(input : ACON::Input::Interface, output : ACON::Output::Interface) : ACON::Command::Status
       id = input.argument("id").to_s
       resp = RightDesk::Client.get("/api/v1/deals/#{URI.encode_path(id)}")
-      return RightDesk.fail(output, "deals:show", resp) unless resp.success?
+      return RightDesk.fail("deals:get", resp, json?(input)) unless resp.success?
 
       if json?(input)
         output.puts resp.body
@@ -266,18 +390,21 @@ module RightDesk
       show.call("expected_close_date", d["expected_close_date"]?)
       ACON::Command::Status::SUCCESS
     rescue ex
-      output.puts "deals:show failed: #{ex.message}"
+      STDERR.puts "deals:get failed: #{ex.message}"
+      RightDesk.exit_code = 1
       ACON::Command::Status::FAILURE
     end
   end
 
-  @[ACONA::AsCommand("contacts:list|contacts", description: "List contacts (newest first)")]
-  class ContactsCommand < ACON::Command
+  @[ACONA::AsCommand("contacts:list", description: "List contacts (newest first)")]
+  class ContactsListCommand < ACON::Command
     include JSONOption
 
     protected def configure : Nil
-      ContactsCommand.add_json_option(self)
-      self.option("page", nil, ACON::Input::Option::Value[:required], "Page number (default 1)")
+      ContactsListCommand.add_json_option(self)
+      self
+        .option("page", nil, ACON::Input::Option::Value[:required], "Page number (default 1)")
+        .option("limit", nil, ACON::Input::Option::Value[:required], "Results per page (max 100)")
     end
 
     protected def execute(input : ACON::Input::Interface, output : ACON::Output::Interface) : ACON::Command::Status
@@ -285,12 +412,16 @@ module RightDesk
         if p = input.option("page").to_s.presence
           form.add("page", p)
         end
+        if l = input.option("limit").to_s.presence
+          form.add("per_page", l)
+        end
       end
       resp = RightDesk::Client.get("/api/v1/contacts", params)
-      return RightDesk.fail(output, "contacts", resp) unless resp.success?
-      RightDesk.print_contacts(input, output, resp, "contacts")
+      return RightDesk.fail("contacts:list", resp, json?(input)) unless resp.success?
+      RightDesk.print_contacts(input, output, resp)
     rescue ex
-      output.puts "contacts failed: #{ex.message}"
+      STDERR.puts "contacts:list failed: #{ex.message}"
+      RightDesk.exit_code = 1
       ACON::Command::Status::FAILURE
     end
   end
@@ -318,27 +449,28 @@ module RightDesk
         end
       end
       resp = RightDesk::Client.get("/api/v1/contacts/search", params)
-      return RightDesk.fail(output, "contacts:search", resp) unless resp.success?
-      RightDesk.print_contacts(input, output, resp, "contacts:search")
+      return RightDesk.fail("contacts:search", resp, json?(input)) unless resp.success?
+      RightDesk.print_contacts(input, output, resp)
     rescue ex
-      output.puts "contacts:search failed: #{ex.message}"
+      STDERR.puts "contacts:search failed: #{ex.message}"
+      RightDesk.exit_code = 1
       ACON::Command::Status::FAILURE
     end
   end
 
-  @[ACONA::AsCommand("contacts:show", description: "Show a single contact by ID")]
-  class ContactsShowCommand < ACON::Command
+  @[ACONA::AsCommand("contacts:get", description: "Show a single contact by ID")]
+  class ContactsGetCommand < ACON::Command
     include JSONOption
 
     protected def configure : Nil
-      ContactsShowCommand.add_json_option(self)
+      ContactsGetCommand.add_json_option(self)
       self.argument("id", :required, "contact ID")
     end
 
     protected def execute(input : ACON::Input::Interface, output : ACON::Output::Interface) : ACON::Command::Status
       id = input.argument("id").to_s
       resp = RightDesk::Client.get("/api/v1/contacts/#{URI.encode_path(id)}")
-      return RightDesk.fail(output, "contacts:show", resp) unless resp.success?
+      return RightDesk.fail("contacts:get", resp, json?(input)) unless resp.success?
 
       if json?(input)
         output.puts resp.body
@@ -363,14 +495,15 @@ module RightDesk
       show.call("linkedin", c["linkedin_profile"]?)
       ACON::Command::Status::SUCCESS
     rescue ex
-      output.puts "contacts:show failed: #{ex.message}"
+      STDERR.puts "contacts:get failed: #{ex.message}"
+      RightDesk.exit_code = 1
       ACON::Command::Status::FAILURE
     end
   end
 
-  # Shared contact-list renderer for `contacts` and `contacts:search`.
+  # Shared contact-list renderer for `contacts:list` and `contacts:search`.
   def self.print_contacts(input : ACON::Input::Interface, output : ACON::Output::Interface,
-                          resp : Client::Response, label : String) : ACON::Command::Status
+                          resp : Client::Response) : ACON::Command::Status
     if input.option("json", Bool)
       output.puts resp.body
       return ACON::Command::Status::SUCCESS
@@ -396,17 +529,17 @@ module RightDesk
     ACON::Command::Status::SUCCESS
   end
 
-  @[ACONA::AsCommand("pipelines:list|pipelines", description: "List sales pipelines")]
-  class PipelinesCommand < ACON::Command
+  @[ACONA::AsCommand("pipelines:list", description: "List sales pipelines")]
+  class PipelinesListCommand < ACON::Command
     include JSONOption
 
     protected def configure : Nil
-      PipelinesCommand.add_json_option(self)
+      PipelinesListCommand.add_json_option(self)
     end
 
     protected def execute(input : ACON::Input::Interface, output : ACON::Output::Interface) : ACON::Command::Status
       resp = RightDesk::Client.get("/api/v1/pipelines")
-      return RightDesk.fail(output, "pipelines", resp) unless resp.success?
+      return RightDesk.fail("pipelines:list", resp, json?(input)) unless resp.success?
 
       if json?(input)
         output.puts resp.body
@@ -418,24 +551,25 @@ module RightDesk
       end
       ACON::Command::Status::SUCCESS
     rescue ex
-      output.puts "pipelines failed: #{ex.message}"
+      STDERR.puts "pipelines:list failed: #{ex.message}"
+      RightDesk.exit_code = 1
       ACON::Command::Status::FAILURE
     end
   end
 
-  @[ACONA::AsCommand("pipelines:show", description: "Show a pipeline and its stages")]
-  class PipelinesShowCommand < ACON::Command
+  @[ACONA::AsCommand("pipelines:get", description: "Show a pipeline and its stages")]
+  class PipelinesGetCommand < ACON::Command
     include JSONOption
 
     protected def configure : Nil
-      PipelinesShowCommand.add_json_option(self)
+      PipelinesGetCommand.add_json_option(self)
       self.argument("id", :required, "pipeline ID")
     end
 
     protected def execute(input : ACON::Input::Interface, output : ACON::Output::Interface) : ACON::Command::Status
       id = input.argument("id").to_s
       resp = RightDesk::Client.get("/api/v1/pipelines/#{URI.encode_path(id)}")
-      return RightDesk.fail(output, "pipelines:show", resp) unless resp.success?
+      return RightDesk.fail("pipelines:get", resp, json?(input)) unless resp.success?
 
       if json?(input)
         output.puts resp.body
@@ -455,7 +589,8 @@ module RightDesk
       end
       ACON::Command::Status::SUCCESS
     rescue ex
-      output.puts "pipelines:show failed: #{ex.message}"
+      STDERR.puts "pipelines:get failed: #{ex.message}"
+      RightDesk.exit_code = 1
       ACON::Command::Status::FAILURE
     end
   end
