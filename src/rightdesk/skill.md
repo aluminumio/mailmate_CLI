@@ -57,6 +57,18 @@ Non-interactive: `rd login <token>`, or set `RIGHTDESK_TOKEN` (overrides `~/.net
 | `rd pipelines create` | Create a pipeline | `--name` (required), `--entity deal\|lead`, `--description`, `--default`, `--position N`, `-j` |
 | `rd pipelines update ID` | Update a pipeline | `--name`, `--description`, `--default`, `--active`, `--inactive`, `--position`, `-j` |
 | `rd pipelines delete ID` | Delete a pipeline (**destructive**) | `--yes` (required) |
+| `rd stages list` | List a pipeline's stages (by position) | `--pipeline ID` (required), `-j` |
+| `rd stages create` | Create a stage | `--pipeline ID` (required), `--name` (required), `--stage-type open\|won\|lost`, `--probability N`, `--rotting-days N`, `--position N`, `--color HEX`, `-j` |
+| `rd stages update ID` | Update a stage | `--pipeline ID` (required), same flags as create, `-j` |
+| `rd stages reorder` | Set stage order | `--pipeline ID` (required), `--order ID,ID,ID` (required) |
+| `rd stages delete ID` | Delete a stage (**destructive**) | `--pipeline ID` (required), `--yes` (required), `--transfer-to STAGE_ID` (needed if the stage holds active deals/leads) |
+| `rd products list` | List products | `--active`, `--inactive`, `--category C`, `--search Q`, `--page N`, `--limit N`, `-j` |
+| `rd products get ID` | Show one product | `-j` |
+| `rd products create` | Create a product | `--name` (required), `--code`, `--category`, `--description`, `--price`, `--currency`, `--tax`, `--unit`, `--billing-frequency`, `--billing-cycles`, `--visible-to`, `--owner-id`, `--external-id`, `--active\|--inactive`, `-j` |
+| `rd products update ID` | Update a product | same flags as create, `-j` |
+| `rd products activate ID` | Activate a product | `-j` |
+| `rd products deactivate ID` | Deactivate a product | `-j` |
+| `rd products delete ID` | Delete a product (**destructive**) | `--yes` (required) |
 | `rd skills` | Print this guide | — |
 
 ## Tips for agentic use

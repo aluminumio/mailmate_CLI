@@ -14,6 +14,11 @@ describe RightDesk::CLI do
       ["companies", "create", "--name", "Acme"] => ["companies:create", "--name", "Acme"],
       ["pipelines", "create", "--name", "Sales"] => ["pipelines:create", "--name", "Sales"],
       ["pipelines", "delete", "5", "--yes"] => ["pipelines:delete", "5", "--yes"],
+      ["stages", "reorder", "--pipeline", "2"] => ["stages:reorder", "--pipeline", "2"],
+      ["stages", "delete", "7", "--pipeline", "2", "--yes"] => ["stages:delete", "7", "--pipeline", "2", "--yes"],
+      ["products", "get", "5"] => ["products:get", "5"],
+      ["products", "activate", "5"] => ["products:activate", "5"],
+      ["products", "deactivate", "5"] => ["products:deactivate", "5"],
       ["deals", "list", "--json"]    => ["deals:list", "--json"],
       ["deals", "list", "--status", "open"] => ["deals:list", "--status", "open"],
       ["deals"]                      => ["deals"],          # bare noun → namespace listing
