@@ -39,6 +39,17 @@ Nouns are plural, verb second, target positional, flags named — e.g. `rd deals
                        --became-date --source --visible-to --status --description --external-id] [-j]
     rd partners update ID [same flags] [-j]
     rd partners timeline ID [-j]
+    rd leads list [--status S] [--owner ID] [--source S] [--pipeline ID] [--stage ID] [--page N] [--limit N] [-j]
+    rd leads get ID [-j]
+    rd leads create --title T [--contact-id --company-id --owner-id --referral-partner-id --value --currency \
+                    --expected-close-date --source --visible-to --status --description --pipeline-id --stage-id \
+                    --external-id] [-j]
+    rd leads update ID [same flags] [-j]
+    rd leads delete ID --yes
+    rd leads move ID (--stage STAGE_ID | --unassigned)
+    rd leads qualify ID [-j]
+    rd leads disqualify ID [--reason TEXT] [-j]
+    rd leads convert ID --to deal|customer|partner [--pipeline ID] --yes
     rd companies list [--search Q] [--industry I] [--page N] [--limit N] [-j]
     rd companies get ID [-j]
     rd companies create --name NAME [--domain --url --industry --phone --city --country \
