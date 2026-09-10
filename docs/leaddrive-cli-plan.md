@@ -83,8 +83,12 @@ specifically our `Customer` model (post-conversion records). No special handling
      cross-org), pagination, idempotency (if applicable), 401.
    - Verify: `bundle exec rspec …` + `curl`. Commit (single subject), draft PR to `master`.
 2. **CLI command PR** (this repo, branch `feature/<noun>-command`)
-   - Add command classes to `src/rightdesk/cli.cr`; register in `CLI.run`; add names to `COMMAND_NAMES`.
-   - Add a `Client` verb if needed; update `README.md` + `src/rightdesk/skill.md`; add rewriter spec cases.
+   - Add `src/rightdesk/commands/<noun>.cr` (command classes + that noun's `*_body`/`configure_*`/`print_*`
+     helpers, reopening `module RightDesk`); `require` it from `cli.cr`; register in `CLI.run`; add names to
+     `COMMAND_NAMES`.
+   - Add a `Client` verb if needed. **Docs:** write `docs/commands/<noun>.md`, add its row to
+     `docs/README.md` + the README command table, and update `src/rightdesk/skill.md` (agent guide). Add
+     rewriter spec cases.
    - Verify: `crystal build … --no-codegen --error-on-warnings`, `crystal spec`, smoke (namespace list,
      usage exit 2, unauth exit 3), and **end-to-end** against a local rightdesk + token (incl.
      idempotency where relevant). Commit, draft PR to `main`.
