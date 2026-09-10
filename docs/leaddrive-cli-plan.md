@@ -55,9 +55,9 @@ Build small → large; leads/deals/activities are the heavy ones and come after 
 | # | Noun | Rails endpoint | CLI command | Effort | Deps | Status |
 |---|------|----------------|-------------|--------|------|--------|
 | 1 | companies | new (list/get/create/update) | list/get/create/update | Low | — | Merged — Rails #626, CLI #32 |
-| 2 | pipelines | **extend** read → +create/update/destroy | list/get/create/update/delete | Low | — | PRs open — Rails #627, CLI #33 |
-| 3 | stages | new (list/create/update/reorder/delete) | list/create/update/reorder/delete¹ | Low | pipelines | PRs open — Rails #627, CLI #33 (same branch as pipelines) |
-| 4 | products | new (CRUD + activate) | list/get/create/update/activate/deactivate/delete² | Low | — | PRs open — Rails #627, CLI #33 (same branch as pipelines) |
+| 2 | pipelines | **extend** read → +create/update/destroy | list/get/create/update/delete | Low | — | CLI merged #33; Rails #627 open |
+| 3 | stages | new (list/create/update/reorder/delete) | list/create/update/reorder/delete¹ | Low | pipelines | PRs open — Rails #627, CLI #34 |
+| 4 | products | new (CRUD + activate) | list/get/create/update/activate/deactivate/delete² | Low | — | PRs open — Rails #627, CLI #34 |
 | 5 | contacts | **extend** (add create/update, merge) | +create/update/merge² (list/get/search exist) | Low | — | todo |
 | 6 | customers | new (CRUD) | list/get/create/update/timeline | Medium | — | todo |
 | 7 | partners | new (CRUD) | list/get/create/update/timeline | Medium | customers | todo |
