@@ -54,10 +54,10 @@ Build small → large; leads/deals/activities are the heavy ones and come after 
 
 | # | Noun | Rails endpoint | CLI command | Effort | Deps | Status |
 |---|------|----------------|-------------|--------|------|--------|
-| 1 | companies | new (list/get/create/update) | list/get/create/update | Low | — | PRs open — Rails #626, CLI #32 |
-| 2 | pipelines | **extend** read → +create/update/destroy | list/get/create/update/delete | Low | — | Rails in progress |
-| 3 | stages | new (list/create/update/reorder/delete) | list/create/update/reorder/delete¹ | Low | pipelines | todo |
-| 4 | products | new (CRUD + activate/import) | list/get/create/update/activate/import/delete² | Low | — | todo |
+| 1 | companies | new (list/get/create/update) | list/get/create/update | Low | — | Merged — Rails #626, CLI #32 |
+| 2 | pipelines | **extend** read → +create/update/destroy | list/get/create/update/delete | Low | — | PRs open — Rails #627, CLI #33 |
+| 3 | stages | new (list/create/update/reorder/delete) | list/create/update/reorder/delete¹ | Low | pipelines | PRs open — Rails #627, CLI #33 (same branch as pipelines) |
+| 4 | products | new (CRUD + activate) | list/get/create/update/activate/deactivate/delete² | Low | — | PRs open — Rails #627, CLI #33 (same branch as pipelines) |
 | 5 | contacts | **extend** (add create/update, merge) | +create/update/merge² (list/get/search exist) | Low | — | todo |
 | 6 | customers | new (CRUD) | list/get/create/update/timeline | Medium | — | todo |
 | 7 | partners | new (CRUD) | list/get/create/update/timeline | Medium | customers | todo |
@@ -65,7 +65,7 @@ Build small → large; leads/deals/activities are the heavy ones and come after 
 | 9 | activities | new (read-slice first) | list/get (+ writes later) | High | — | todo |
 | 10 | deals | **extend** (add the rest) | +update/move/won/lost/convert/merge/… (list/get/create exist) | High | contacts, pipelines, stages, products | todo |
 
-¹ `stages delete` requires `--transfer-to` (mirrors the web `transfer_and_destroy`; never orphan deals).
+¹ `stages delete` is destructive (`--yes`); if the stage still holds active deals/leads it 409s unless `--transfer-to STAGE_ID` is given, which moves them first (mirrors the web `transfer_and_destroy`; never orphan deals).
 ² `*:delete` / `contacts merge` are **destructive** → require `--yes`.
 
 **"customers" note:** John uses "customers" loosely for any CRM record; the `customers` noun above is

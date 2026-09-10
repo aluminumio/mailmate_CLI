@@ -33,6 +33,21 @@ Nouns are plural, verb second, target positional, flags named — e.g. `rd deals
     rd pipelines create --name NAME [--entity deal|lead] [--description] [--default] [--position N] [-j]
     rd pipelines update ID [--name --description --default --active --inactive --position] [-j]
     rd pipelines delete ID --yes
+    rd stages list --pipeline ID [-j]
+    rd stages create --pipeline ID --name NAME [--stage-type open|won|lost] [--probability N] \
+                     [--rotting-days N] [--position N] [--color HEX] [-j]
+    rd stages update ID --pipeline ID [same flags] [-j]
+    rd stages reorder --pipeline ID --order ID,ID,ID
+    rd stages delete ID --pipeline ID --yes [--transfer-to STAGE_ID]
+    rd products list [--active|--inactive] [--category C] [--search Q] [--page N] [--limit N] [-j]
+    rd products get ID [-j]
+    rd products create --name NAME [--code --category --description --price --currency --tax --unit \
+                       --billing-frequency --billing-cycles --visible-to --owner-id --external-id \
+                       --active|--inactive] [-j]
+    rd products update ID [same flags] [-j]
+    rd products activate ID [-j]
+    rd products deactivate ID [-j]
+    rd products delete ID --yes
     rd skills                              # print agent/LLM usage guide
 
 `rd <noun>` with no verb lists that noun's commands. Run `rd skills` for an LLM-consumable walkthrough.
