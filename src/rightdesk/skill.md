@@ -54,6 +54,9 @@ Non-interactive: `rd login <token>`, or set `RIGHTDESK_TOKEN` (overrides `~/.net
 | `rd companies update ID` | Update a company | same flags as create, `-j` |
 | `rd pipelines list` | List pipelines | `-j` |
 | `rd pipelines get ID` | Show a pipeline + stages | `-j` |
+| `rd pipelines create` | Create a pipeline | `--name` (required), `--entity deal\|lead`, `--description`, `--default`, `--position N`, `-j` |
+| `rd pipelines update ID` | Update a pipeline | `--name`, `--description`, `--default`, `--active`, `--inactive`, `--position`, `-j` |
+| `rd pipelines delete ID` | Delete a pipeline (**destructive**) | `--yes` (required) |
 | `rd skills` | Print this guide | — |
 
 ## Tips for agentic use

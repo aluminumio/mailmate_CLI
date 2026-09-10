@@ -28,6 +28,10 @@ module RightDesk
       request("PATCH", path, body: body)
     end
 
+    def self.delete(path : String) : Response
+      request("DELETE", path)
+    end
+
     private def self.request(method : String, path : String,
                              query : String? = nil, body : String? = nil) : Response
       # No local token → synthesize a 401 so callers take the normal auth-failure

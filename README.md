@@ -30,6 +30,9 @@ Nouns are plural, verb second, target positional, flags named — e.g. `rd deals
     rd companies update ID [same flags] [-j]
     rd pipelines list [-j]
     rd pipelines get ID [-j]
+    rd pipelines create --name NAME [--entity deal|lead] [--description] [--default] [--position N] [-j]
+    rd pipelines update ID [--name --description --default --active --inactive --position] [-j]
+    rd pipelines delete ID --yes
     rd skills                              # print agent/LLM usage guide
 
 `rd <noun>` with no verb lists that noun's commands. Run `rd skills` for an LLM-consumable walkthrough.
