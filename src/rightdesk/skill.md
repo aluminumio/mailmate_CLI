@@ -48,6 +48,19 @@ Non-interactive: `rd login <token>`, or set `RIGHTDESK_TOKEN` (overrides `~/.net
 | `rd contacts list` | List contacts | `--page N`, `--limit N`, `-j` |
 | `rd contacts search QUERY` | Search contacts (name/email/phone) | `--company ID`, `-j` |
 | `rd contacts get ID` | Show one contact | `-j` |
+| `rd contacts create` | Create a contact | `--email` (required), `--first-name`, `--last-name`, `--phone`, `--note`, `--company-id`, `--line-id`, `--line-user-id`, `--whatsapp-number`, `--linkedin-profile`, `--alternative-emails`, `-j` |
+| `rd contacts update ID` | Update a contact | same flags as create, `-j` |
+| `rd contacts merge PRIMARY_ID` | Merge a duplicate into the primary (**destructive**) | `--duplicate DUP_ID` (required), `--yes` (required) |
+| `rd customers list` | List customers | `--status`, `--owner ID`, `--search Q`, `--page N`, `--limit N`, `-j` |
+| `rd customers get ID` | Show one customer | `-j` |
+| `rd customers create` | Create a customer | `--title` (required), `--contact-id`, `--company-id`, `--owner-id`, `--value`, `--currency`, `--became-date`, `--source`, `--visible-to`, `--status`, `--description`, `--external-id`, `-j` |
+| `rd customers update ID` | Update a customer | same flags as create, `-j` |
+| `rd customers timeline ID` | Show a customer's history | `-j` |
+| `rd partners list` | List partners | `--status`, `--owner ID`, `--partner-type T`, `--search Q`, `--page N`, `--limit N`, `-j` |
+| `rd partners get ID` | Show one partner | `-j` |
+| `rd partners create` | Create a partner | `--title` (required), `--partner-type`, plus the same flags as customers, `-j` |
+| `rd partners update ID` | Update a partner | same flags as create, `-j` |
+| `rd partners timeline ID` | Show a partner's history | `-j` |
 | `rd companies list` | List companies | `--search Q`, `--industry I`, `--page N`, `--limit N`, `-j` |
 | `rd companies get ID` | Show one company | `-j` |
 | `rd companies create` | Create a company | `--name` (required), `--domain`, `--url`, `--industry`, `--phone`, `--city`, `--country`, `--postal-code`, `--employees`, `--type`, `--description`, `--owner`, `--external-id`, `-j` |
