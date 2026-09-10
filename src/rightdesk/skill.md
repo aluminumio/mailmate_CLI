@@ -61,6 +61,15 @@ Non-interactive: `rd login <token>`, or set `RIGHTDESK_TOKEN` (overrides `~/.net
 | `rd partners create` | Create a partner | `--title` (required), `--partner-type`, plus the same flags as customers, `-j` |
 | `rd partners update ID` | Update a partner | same flags as create, `-j` |
 | `rd partners timeline ID` | Show a partner's history | `-j` |
+| `rd leads list` | List leads | `--status`, `--owner ID`, `--source S`, `--pipeline ID`, `--stage ID`, `--page N`, `--limit N`, `-j` |
+| `rd leads get ID` | Show one lead | `-j` |
+| `rd leads create` | Create a lead | `--title` (required); optional `--contact-id`, `--company-id`, `--owner-id`, `--referral-partner-id`, `--value`, `--currency`, `--expected-close-date`, `--source`, `--visible-to`, `--status`, `--description`, `--pipeline-id`, `--stage-id`, `--external-id`, `-j`. Defaults to the org's default lead pipeline/stage if none given. |
+| `rd leads update ID` | Update a lead | same flags as create, `-j` |
+| `rd leads delete ID` | Delete a lead (**destructive**) | `--yes` (required) |
+| `rd leads move ID` | Move to a stage | `--stage STAGE_ID` or `--unassigned` |
+| `rd leads qualify ID` | Mark qualified | `-j` |
+| `rd leads disqualify ID` | Mark disqualified | `--reason TEXT`, `-j` |
+| `rd leads convert ID` | Convert to deal/customer/partner (**outward**) | `--to deal\|customer\|partner` (required), `--pipeline ID` (for deal), `--yes` (required) |
 | `rd companies list` | List companies | `--search Q`, `--industry I`, `--page N`, `--limit N`, `-j` |
 | `rd companies get ID` | Show one company | `-j` |
 | `rd companies create` | Create a company | `--name` (required), `--domain`, `--url`, `--industry`, `--phone`, `--city`, `--country`, `--postal-code`, `--employees`, `--type`, `--description`, `--owner`, `--external-id`, `-j` |

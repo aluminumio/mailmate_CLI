@@ -23,6 +23,9 @@ describe RightDesk::CLI do
       ["contacts", "create", "--email", "a@b.co"] => ["contacts:create", "--email", "a@b.co"],
       ["customers", "timeline", "5"] => ["customers:timeline", "5"],
       ["partners", "create", "--title", "Acme"] => ["partners:create", "--title", "Acme"],
+      ["leads", "convert", "7", "--to", "deal", "--yes"] => ["leads:convert", "7", "--to", "deal", "--yes"],
+      ["leads", "move", "7", "--stage", "3"] => ["leads:move", "7", "--stage", "3"],
+      ["leads", "disqualify", "7"] => ["leads:disqualify", "7"],
       ["deals", "list", "--json"]    => ["deals:list", "--json"],
       ["deals", "list", "--status", "open"] => ["deals:list", "--status", "open"],
       ["deals"]                      => ["deals"],          # bare noun → namespace listing
