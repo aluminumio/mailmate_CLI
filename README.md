@@ -23,6 +23,22 @@ Nouns are plural, verb second, target positional, flags named — e.g. `rd deals
     rd contacts search QUERY [--company ID] [-j]
     rd contacts get ID [-j]
     rd contacts list [--page N] [--limit N] [-j]
+    rd contacts create --email EMAIL [--first-name --last-name --phone --note --company-id \
+                       --line-id --line-user-id --whatsapp-number --linkedin-profile --alternative-emails] [-j]
+    rd contacts update ID [same flags] [-j]
+    rd contacts merge PRIMARY_ID --duplicate DUP_ID --yes
+    rd customers list [--status S] [--owner ID] [--search Q] [--page N] [--limit N] [-j]
+    rd customers get ID [-j]
+    rd customers create --title T [--contact-id --company-id --owner-id --value --currency \
+                        --became-date --source --visible-to --status --description --external-id] [-j]
+    rd customers update ID [same flags] [-j]
+    rd customers timeline ID [-j]
+    rd partners list [--status S] [--owner ID] [--partner-type T] [--search Q] [--page N] [--limit N] [-j]
+    rd partners get ID [-j]
+    rd partners create --title T [--partner-type --contact-id --company-id --owner-id --value --currency \
+                       --became-date --source --visible-to --status --description --external-id] [-j]
+    rd partners update ID [same flags] [-j]
+    rd partners timeline ID [-j]
     rd companies list [--search Q] [--industry I] [--page N] [--limit N] [-j]
     rd companies get ID [-j]
     rd companies create --name NAME [--domain --url --industry --phone --city --country \
