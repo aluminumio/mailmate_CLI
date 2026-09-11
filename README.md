@@ -4,9 +4,14 @@ CLI for the [RightDesk](https://app.rightdesk.com) API. The command is `rd`. Cry
 
 ## Install
 
-    brew install aluminumio/tap/rd
+    brew install aluminumio/tap/rightdesk
 
-Or download a binary from [Releases](https://github.com/aluminumio/rightdesk-cli/releases).
+The Homebrew package is `rightdesk`; the installed command is `rd`. Or download a binary
+from [Releases](https://github.com/aluminumio/rightdesk-cli/releases).
+
+> **Oh My Zsh users:** OMZ aliases `rd` (to `rmdir`, and to `rails destroy` with the rails
+> plugin), which shadows this CLI. If `rd` doesn't run RightDesk, add `unalias rd` to your
+> `~/.zshrc` after the Oh My Zsh line, or invoke it as `command rd`.
 
 ## Grammar
 
