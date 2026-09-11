@@ -45,6 +45,16 @@ Non-interactive: `rd login <token>`, or set `RIGHTDESK_TOKEN` (overrides `~/.net
 | `rd whoami` | Show current user/org | `-j` |
 | `rd deals list` | List deals (newest first) | `--status open\|won\|lost`, `--page N`, `--limit N`, `-j` |
 | `rd deals get ID` | Show one deal | `-j` |
+| `rd deals create` | Create a deal | `--title` (required), `--pipeline-id`, `--stage-id`, `--contact-id`, `--company-id`, `--owner-id`, `--value`, `--currency`, `--expected-close-date`, `--source`, `--visible-to`, `--probability`, `--referral-partner-id`, `-j` |
+| `rd deals update ID` | Update a deal | same flags as create, `-j` |
+| `rd deals move ID` | Move to a stage (same pipeline) | `--stage STAGE_ID` (required), `-j` |
+| `rd deals won ID` | Mark won | `-j` |
+| `rd deals lost ID` | Mark lost | `--reason TEXT`, `-j` |
+| `rd deals reopen ID` | Reopen a closed deal | `-j` |
+| `rd deals convert ID` | Convert to customer/partner (**outward**) | `--to customer\|partner` (required), `--yes` (required) |
+| `rd deals merge PRIMARY_ID` | Merge a duplicate deal (**destructive**) | `--duplicate DUP_ID` (required), `--yes` (required) |
+| `rd activities list` | List activities (by due date) | `--done true\|false`, `--type`, `--assigned-to ID`, `--deal`, `--lead`, `--contact`, `--company`, `--customer`, `--partner`, `--due-before`, `--due-after`, `--page N`, `--limit N`, `-j` |
+| `rd activities get ID` | Show one activity | `-j` |
 | `rd contacts list` | List contacts | `--page N`, `--limit N`, `-j` |
 | `rd contacts search QUERY` | Search contacts (name/email/phone) | `--company ID`, `-j` |
 | `rd contacts get ID` | Show one contact | `-j` |

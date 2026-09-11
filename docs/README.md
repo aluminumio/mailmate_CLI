@@ -16,7 +16,8 @@ Three ways to get help at the terminal, always authoritative:
 | auth & session | login, logout, whoami, skills | [auth.md](commands/auth.md) |
 | contacts | list, get, search, create, update, merge | [contacts.md](commands/contacts.md) |
 | companies | list, get, create, update | [companies.md](commands/companies.md) |
-| deals | list, get *(writes on the roadmap)* | [deals.md](commands/deals.md) |
+| deals | list, get, create, update, move, won, lost, reopen, convert, merge | [deals.md](commands/deals.md) |
+| activities | list, get *(read-only)* | [activities.md](commands/activities.md) |
 | pipelines | list, get, create, update, delete | [pipelines.md](commands/pipelines.md) |
 | stages | list, create, update, reorder, delete | [stages.md](commands/stages.md) |
 | products | list, get, create, update, activate, deactivate, delete | [products.md](commands/products.md) |

@@ -6,6 +6,7 @@ require "./client"
 require "./support"
 require "./commands/session"
 require "./commands/deals"
+require "./commands/activities"
 require "./commands/contacts"
 require "./commands/companies"
 require "./commands/pipelines"
@@ -20,7 +21,8 @@ module RightDesk
     # Registered command names, used by the ARGV rewriter to validate joins.
     COMMAND_NAMES = %w[
       login logout whoami skills
-      deals:list deals:get
+      deals:list deals:get deals:create deals:update deals:move deals:won deals:lost deals:reopen deals:convert deals:merge
+      activities:list activities:get
       contacts:list contacts:get contacts:search contacts:create contacts:update contacts:merge
       companies:list companies:get companies:create companies:update
       customers:list customers:get customers:create customers:update customers:timeline
@@ -40,6 +42,16 @@ module RightDesk
       app.add SkillsCommand.new
       app.add DealsListCommand.new
       app.add DealsGetCommand.new
+      app.add DealsCreateCommand.new
+      app.add DealsUpdateCommand.new
+      app.add DealsMoveCommand.new
+      app.add DealsWonCommand.new
+      app.add DealsLostCommand.new
+      app.add DealsReopenCommand.new
+      app.add DealsConvertCommand.new
+      app.add DealsMergeCommand.new
+      app.add ActivitiesListCommand.new
+      app.add ActivitiesGetCommand.new
       app.add ContactsListCommand.new
       app.add ContactsSearchCommand.new
       app.add ContactsGetCommand.new
