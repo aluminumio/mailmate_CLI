@@ -39,7 +39,8 @@ Full reference, one page per noun, under [`docs/`](docs/README.md):
 | auth & session | login, logout, whoami, skills | [auth](docs/commands/auth.md) |
 | contacts | list, get, search, create, update, merge | [contacts](docs/commands/contacts.md) |
 | companies | list, get, create, update | [companies](docs/commands/companies.md) |
-| deals | list, get *(writes on the roadmap)* | [deals](docs/commands/deals.md) |
+| deals | list, get, create, update, move, won, lost, reopen, convert, merge | [deals](docs/commands/deals.md) |
+| activities | list, get *(read-only)* | [activities](docs/commands/activities.md) |
 | pipelines | list, get, create, update, delete | [pipelines](docs/commands/pipelines.md) |
 | stages | list, create, update, reorder, delete | [stages](docs/commands/stages.md) |
 | products | list, get, create, update, activate, deactivate, delete | [products](docs/commands/products.md) |

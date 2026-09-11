@@ -26,6 +26,10 @@ describe RightDesk::CLI do
       ["leads", "convert", "7", "--to", "deal", "--yes"] => ["leads:convert", "7", "--to", "deal", "--yes"],
       ["leads", "move", "7", "--stage", "3"] => ["leads:move", "7", "--stage", "3"],
       ["leads", "disqualify", "7"] => ["leads:disqualify", "7"],
+      ["deals", "convert", "5", "--to", "customer", "--yes"] => ["deals:convert", "5", "--to", "customer", "--yes"],
+      ["deals", "won", "5"] => ["deals:won", "5"],
+      ["activities", "list", "--done", "true"] => ["activities:list", "--done", "true"],
+      ["activities", "get", "5"] => ["activities:get", "5"],
       ["deals", "list", "--json"]    => ["deals:list", "--json"],
       ["deals", "list", "--status", "open"] => ["deals:list", "--status", "open"],
       ["deals"]                      => ["deals"],          # bare noun → namespace listing
