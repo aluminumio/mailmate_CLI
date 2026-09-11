@@ -9,9 +9,9 @@ CLI for the [RightDesk](https://app.rightdesk.com) API. The command is `rd`. Cry
 The Homebrew package is `rightdesk`; the installed command is `rd`. Or download a binary
 from [Releases](https://github.com/aluminumio/rightdesk-cli/releases).
 
-> **Oh My Zsh users:** OMZ aliases `rd` (to `rmdir`, and to `rails destroy` with the rails
-> plugin), which shadows this CLI. If `rd` doesn't run RightDesk, add `unalias rd` to your
-> `~/.zshrc` after the Oh My Zsh line, or invoke it as `command rd`.
+> **If `rd` doesn't run RightDesk**, a shell alias or another tool is shadowing the name
+> (check with `type rd`). Run it as `command rd`, or remove the alias by adding
+> `unalias rd` to your shell profile (`~/.zshrc` / `~/.bashrc`) below anything that defines it.
 
 ## Grammar
 
